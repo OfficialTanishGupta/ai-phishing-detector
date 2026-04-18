@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 import torch
 import pickle
 from model import SpamClassifier
@@ -13,22 +13,21 @@ with open("../models/vectorizer.pkl", "rb") as f:
 # Load model
 input_size = 3000
 model = SpamClassifier(input_size)
-model.load_state_dict(torch.load("../src/spam_model.pth"))
+model.load_state_dict(torch.load("spam_model.pth"))
 model.eval()
 
 
 @app.route("/")
 def home():
-    return "Spam Detection API is running!"
+    return render_template("index.html")
 
 
 @app.route("/predict", methods=["POST"])
 def predict():
-    data = request.get_json()
-    text = data.get("text", "")
+    original_text = request.form["text"]   # ← save original first
 
-    text = clean_text(text)
-    vector = vectorizer.transform([text]).toarray()
+    cleaned = clean_text(original_text)    # ← clean separately
+    vector = vectorizer.transform([cleaned]).toarray()
     vector = torch.tensor(vector).float()
 
     with torch.no_grad():
@@ -37,7 +36,7 @@ def predict():
 
     result = "Spam" if predicted.item() == 1 else "Not Spam"
 
-    return jsonify({"prediction": result})
+    return render_template("index.html", prediction=result, input_text=original_text)  # ← pass original
 
 
 if __name__ == "__main__":

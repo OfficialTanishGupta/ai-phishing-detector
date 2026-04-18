@@ -1,0 +1,425 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Spam Detector</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: Arial, sans-serif;
+        background: #f4f6f9;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 1rem;
+      }
+      .container {
+        width: 100%;
+        max-width: 620px;
+      }
+      .header {
+        text-align: center;
+        margin-bottom: 1.5rem;
+      }
+      .header-icon {
+        width: 56px;
+        height: 56px;
+        background: #e8f0fe;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        margin: 0 auto 0.75rem;
+      }
+      .header h1 {
+        font-size: 22px;
+        font-weight: 600;
+        color: #1a1a2e;
+        margin-bottom: 4px;
+      }
+      .header p {
+        font-size: 14px;
+        color: #6b7280;
+      }
+      .card {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 1.5rem;
+      }
+      .card label {
+        display: block;
+        font-size: 13px;
+        color: #6b7280;
+        margin-bottom: 8px;
+      }
+      textarea {
+        width: 100%;
+        height: 130px;
+        resize: vertical;
+        font-size: 14px;
+        font-family: Arial, sans-serif;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 10px 12px;
+        color: #1a1a2e;
+        outline: none;
+        transition: border-color 0.15s;
+      }
+      textarea:focus {
+        border-color: #6366f1;
+      }
+      .char-count {
+        text-align: right;
+        font-size: 12px;
+        color: #9ca3af;
+        margin-top: 5px;
+      }
+      .btn-row {
+        display: flex;
+        gap: 10px;
+        margin-top: 14px;
+      }
+      button {
+        flex: 1;
+        padding: 10px;
+        font-size: 14px;
+        font-weight: 500;
+        border-radius: 8px;
+        cursor: pointer;
+        border: 1px solid #e5e7eb;
+        background: #fff;
+        color: #374151;
+        transition: background 0.15s;
+      }
+      button:hover {
+        background: #f3f4f6;
+      }
+      .btn-primary {
+        background: #1a1a2e;
+        color: #fff;
+        border-color: transparent;
+      }
+      .btn-primary:hover {
+        background: #2d2d4e;
+      }
+      .result-box {
+        display: none;
+        margin-top: 1.25rem;
+        border-radius: 10px;
+        padding: 1rem 1.25rem;
+      }
+      .result-box.spam {
+        background: #fef2f2;
+        border: 1px solid #fca5a5;
+      }
+      .result-box.safe {
+        background: #f0fdf4;
+        border: 1px solid #86efac;
+      }
+      .result-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .result-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        flex-shrink: 0;
+      }
+      .spam .result-icon {
+        background: #fecaca;
+      }
+      .safe .result-icon {
+        background: #bbf7d0;
+      }
+      .result-label {
+        font-size: 12px;
+        margin-bottom: 2px;
+      }
+      .spam .result-label {
+        color: #b91c1c;
+      }
+      .safe .result-label {
+        color: #15803d;
+      }
+      .result-value {
+        font-size: 15px;
+        font-weight: 600;
+      }
+      .spam .result-value {
+        color: #7f1d1d;
+      }
+      .safe .result-value {
+        color: #14532d;
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 10px;
+        margin-top: 1.25rem;
+      }
+      .stat {
+        background: #f9fafb;
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        text-align: center;
+      }
+      .stat-val {
+        font-size: 20px;
+        font-weight: 600;
+        color: #1a1a2e;
+      }
+      .stat-lbl {
+        font-size: 12px;
+        color: #9ca3af;
+        margin-top: 2px;
+      }
+      .examples {
+        margin-top: 1.5rem;
+      }
+      .examples-lbl {
+        font-size: 12px;
+        color: #9ca3af;
+        margin-bottom: 8px;
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .chip {
+        font-size: 12px;
+        padding: 5px 12px;
+        border-radius: 20px;
+        border: 1px solid #e5e7eb;
+        background: #f9fafb;
+        color: #6b7280;
+        cursor: pointer;
+        transition: all 0.12s;
+      }
+      .chip:hover {
+        background: #fff;
+        color: #1a1a2e;
+        border-color: #6366f1;
+      }
+      .history {
+        display: none;
+        margin-top: 1.5rem;
+      }
+      .history-lbl {
+        font-size: 12px;
+        color: #9ca3af;
+        margin-bottom: 8px;
+      }
+      .hist-list {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .hist-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #f9fafb;
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-size: 13px;
+      }
+      .hist-txt {
+        color: #6b7280;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 80%;
+      }
+      .hist-badge {
+        font-size: 11px;
+        padding: 2px 8px;
+        border-radius: 20px;
+        flex-shrink: 0;
+        font-weight: 500;
+      }
+      .pill-spam {
+        background: #fef2f2;
+        color: #b91c1c;
+      }
+      .pill-safe {
+        background: #f0fdf4;
+        color: #15803d;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <div class="header-icon">📧</div>
+        <h1>AI Spam Detector</h1>
+        <p>Paste any email or message to check if it's spam</p>
+      </div>
+
+      <div class="card">
+        <label for="emailInput">Email or message content</label>
+        <form action="/predict" method="post" id="spamForm">
+          <textarea
+            id="emailInput"
+            name="text"
+            placeholder="Paste your email text here…"
+            oninput="updateChar()"
+          >
+{{ input_text }}</textarea
+          >
+          <div class="char-count"><span id="charCount">0</span> characters</div>
+
+          <div class="btn-row">
+            <button type="button" onclick="clearAll()">Clear</button>
+            <button type="submit" class="btn-primary">Check for spam</button>
+          </div>
+        </form>
+
+        {% if prediction %}
+        <div
+          class="result-box {{ 'spam' if 'spam' in prediction.lower() else 'safe' }}"
+          style="display: block"
+        >
+          <div class="result-row">
+            <div class="result-icon">
+              {{ '⚠' if 'spam' in prediction.lower() else '✓' }}
+            </div>
+            <div>
+              <p class="result-label">Verdict</p>
+              <p class="result-value">{{ prediction }}</p>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-val" id="totalChecked">0</div>
+          <div class="stat-lbl">Total checked</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val" id="spamCount">0</div>
+          <div class="stat-lbl">Spam found</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val" id="safeCount">0</div>
+          <div class="stat-lbl">Safe messages</div>
+        </div>
+      </div>
+
+      <div class="examples">
+        <p class="examples-lbl">Try an example</p>
+        <div class="chips">
+          <div
+            class="chip"
+            onclick="
+              loadExample(
+                'Congratulations! You have won $1,000,000. Click here to claim your prize now!',
+              )
+            "
+          >
+            Prize winner
+          </div>
+          <div
+            class="chip"
+            onclick="
+              loadExample(
+                'Hi, just checking in on our meeting tomorrow at 10am. Let me know if you need to reschedule.',
+              )
+            "
+          >
+            Regular email
+          </div>
+          <div
+            class="chip"
+            onclick="
+              loadExample(
+                'URGENT: Your account will be suspended. Verify your details immediately at this link.',
+              )
+            "
+          >
+            Urgent warning
+          </div>
+          <div
+            class="chip"
+            onclick="
+              loadExample(
+                'Thanks for your order! Your package will arrive in 3-5 business days.',
+              )
+            "
+          >
+            Order update
+          </div>
+        </div>
+      </div>
+
+      <div class="history" id="historySection">
+        <p class="history-lbl">Recent checks</p>
+        <div class="hist-list" id="histList"></div>
+      </div>
+    </div>
+
+    <script>
+      let total = parseInt(localStorage.getItem('sd_total') || '0');
+      let spam  = parseInt(localStorage.getItem('sd_spam')  || '0');
+      let safe  = parseInt(localStorage.getItem('sd_safe')  || '0');
+
+      {% if prediction %}
+      // Only count if this is a fresh prediction (not a back-button reload)
+      const lastText = localStorage.getItem('sd_last_text') || '';
+      const currentText = "{{ input_text | e }}";
+      const currentResult = "{{ prediction }}";
+
+      if (currentText !== lastText) {
+          total += 1;
+          {% if prediction == 'Spam' %}
+          spam += 1;
+          {% else %}
+          safe += 1;
+          {% endif %}
+          localStorage.setItem('sd_total', total);
+          localStorage.setItem('sd_spam',  spam);
+          localStorage.setItem('sd_safe',  safe);
+          localStorage.setItem('sd_last_text', currentText);
+      }
+      {% endif %}
+
+      document.getElementById('totalChecked').textContent = total;
+      document.getElementById('spamCount').textContent    = spam;
+      document.getElementById('safeCount').textContent    = safe;
+
+      window.onload = function() {
+          const ta = document.getElementById('emailInput');
+          document.getElementById('charCount').textContent = ta.value.length;
+      };
+
+      function updateChar() {
+          document.getElementById('charCount').textContent =
+              document.getElementById('emailInput').value.length;
+      }
+
+      function clearAll() {
+          document.getElementById('emailInput').value = '';
+          document.getElementById('charCount').textContent = '0';
+      }
+
+      function loadExample(txt) {
+          document.getElementById('emailInput').value = txt;
+          updateChar();
+      }
+    </script>
+  </body>
+</html>
